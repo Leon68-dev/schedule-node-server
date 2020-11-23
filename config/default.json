@@ -1,0 +1,11 @@
+{
+    "port": 5000,
+    "jwtSecret": "deep purple my favoryte groupe",
+    "mssql": {
+        "user": "SA",
+        "password": "`12345",
+        "server": "localhost", 
+        "database": "test-app"
+    },
+    "baseUrl": "http://localhost:5000"
+}

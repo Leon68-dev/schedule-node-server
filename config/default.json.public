@@ -1,0 +1,15 @@
+{
+    "port": 28082,
+    "jwtSecret": "deep purple my favoryte groupe",
+    "mssql": {
+        "user": "SA",
+        "password": "`123qw",
+        "server": "localhost", 
+        "database": "test-app",
+	"options": {
+        	"instanceName": "SQLEXPRESS"
+    	}
+    },
+    "baseUrl": "http://192.168.1.199:28082"
+
+}
