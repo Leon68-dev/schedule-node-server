@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useContext} from 'react' 
+import React, {useEffect, useState, useContext,useCallback} from 'react' 
 import { AuthContext } from '../context/AuthContext';
 import { useHttp } from '../hooks/http.hook'
 import { useMessage } from '../hooks/message.hook';
@@ -8,27 +8,54 @@ export const SchedulePage = () => {
     const auth = useContext(AuthContext);
     const message = useMessage();
     const {loading, request, error, clearError} = useHttp();
-    const leftPanelData = consts.LESSONS.filter(i=>i.day === consts.getDayOfWeek(1) || i.day === consts.getDayOfWeek(2) || i.day === consts.getDayOfWeek(3));
-    const rightPanelData = consts.LESSONS.filter(i=>i.day === consts.getDayOfWeek(4) || i.day === consts.getDayOfWeek(5));
+    const {token} = useContext(AuthContext);
+    const [schedule1, setSchedule1] = useState([]);
+    const [schedule2, setSchedule2] = useState([]);
+
+    //const leftPanelData = consts.LESSONS.filter(i=>i.day === consts.getDayOfWeek(1) || i.day === consts.getDayOfWeek(2) || i.day === consts.getDayOfWeek(3));
+    //const rightPanelData = consts.LESSONS.filter(i=>i.day === consts.getDayOfWeek(4) || i.day === consts.getDayOfWeek(5));
+
+    const fetchSchedule1 = useCallback(async () => {
+      console.log('token', token);
+      try {
+        const fetched = await request('/api/scheduler/load/1/3', 'GET', null, {
+          Authorization: `Bearer ${token}`
+        });
+        setSchedule1(fetched);
+      } catch (e) {}
+    }, [token, request]);
+  
+    const fetchSchedule2 = useCallback(async () => {
+      console.log('token', token);
+      try {
+        const fetched = await request('/api/scheduler/load/4/5', 'GET', null, {
+          Authorization: `Bearer ${token}`
+        });
+        setSchedule2(fetched);
+      } catch (e) {}
+    }, [token, request]);
+  
 
     useEffect(()=>{
-        window.M.updateTextFields();
+      fetchSchedule1();
+      fetchSchedule2();
+      window.M.updateTextFields();
     }, []);
 
     useEffect(()=>{
-        message(error);
-        clearError();
+      message(error);
+      clearError();
     }, [error, message, clearError]);
-    
+
     return (
 
         <div className='root'>
-        <Clock/>
+        <Clock />
         <h2 className='caption'>Расписание</h2>
-        <div className='wrapper my-flex'>
-            <LessonsTable lessons={leftPanelData}/>
-            <LessonsTable lessons={rightPanelData}/>
-        </div>
+          <div className='wrapper my-flex'>
+              <LessonsTable lessons={schedule1}/>
+              <LessonsTable lessons={schedule2}/>
+          </div>
         </div>
     );
    
@@ -96,39 +123,27 @@ function LessonsTable(props){
     );
   }
   
-  
-  class Clock extends React.Component {
-    constructor(props) {
-      super(props);
-      this.state = {date: new Date()};
-      
+  function Clock() {
+    const [stateDate, setStateDate] = useState({date: new Date()}) ;
+
+    const tick = () => {
+      setStateDate({date: new Date()});
     }
-  
-    tick() {
-      this.setState({
-        date: new Date()
-      });
-    }
-  
-    componentDidMount() {
-      this.timerID = setInterval(
-        () => this.tick(),
+   
+    useEffect(()=>{
+      const timerID = setInterval(
+        () => tick(),
         1000
       );
-    }
-  
-    componentWillUnmount() {
-      clearInterval(this.timerID);
-    }
+      return () => clearInterval(timerID);
+    });
+
+    const dateTimeCaption = `${consts.getDayOfWeek(stateDate.date.getDay())}, ${stateDate.date.getDate()} ${consts.getMonth(stateDate.date.getMonth())} - ${stateDate.date.toLocaleTimeString()}`;
+    return (
+      <div className='wrapper'>
+        <h2>{`${dateTimeCaption}`}</h2>
+      </div>
+    );
     
-    render() {
-      let dateTimeCaption = `${consts.getDayOfWeek(this.state.date.getDay())}, ${this.state.date.getDate()} ${consts.getMonth(this.state.date.getMonth())} - ${this.state.date.toLocaleTimeString()}`;
-      return (
-        <div className='wrapper'>
-          <h2>{`${dateTimeCaption}`}</h2>
-        </div>
-      );
-    }
+
   }
-  
-  
