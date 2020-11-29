@@ -17,6 +17,7 @@ export const Navbar = () =>{
             <div className="nav-wrapper blue darken-1" style={{ padding: '0 2rem' }} >
             <span className="brand-logo">TEST-APP</span>
             <ul id="nav-mobile" className="right hide-on-med-and-down">
+                <li><NavLink to="/detail">Домашняя</NavLink></li>
                 <li><NavLink to="/schedule">Расписание</NavLink></li>
                 <li><a href="/" onClick={logoutHandler}>Выход</a></li>
             </ul>

@@ -14,7 +14,7 @@ export const useRoutes = isAutenticated =>{
                 <Route path="/detail"  >
                     <DetailPage />
                 </Route>
-                <Redirect to ="/schedule"  />
+                <Redirect to ="/detail"  />
             </Switch>
         );
     }
