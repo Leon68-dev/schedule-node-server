@@ -1,13 +1,11 @@
 const {Router} = require('express');
-const bcrypt = require('bcryptjs')
-const jwt = require('jsonwebtoken')
+//const bcrypt = require('bcryptjs')
+//const jwt = require('jsonwebtoken')
 //const {check, validationResult} = require('express-validator')
 const router = Router();
 const config = require('config')
 const sql = require('mssql')
 const auth = require('../middleware/auth.middleware')
-const shortid = require('shortid');
-//const Link = require('../models/Link');
 
 // /api/scheduler/load
 router.get('/load/:beg/:end', auth, async (req, res) => {

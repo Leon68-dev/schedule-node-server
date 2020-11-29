@@ -2,21 +2,17 @@ import React, {useEffect, useState, useContext,useCallback} from 'react'
 import { AuthContext } from '../context/AuthContext';
 import { useHttp } from '../hooks/http.hook'
 import { useMessage } from '../hooks/message.hook';
+import {Loader} from '../components/Loader'
 import * as consts from '../data/Consts'
 
 export const SchedulePage = () => {
-    const auth = useContext(AuthContext);
     const message = useMessage();
     const {loading, request, error, clearError} = useHttp();
     const {token} = useContext(AuthContext);
     const [schedule1, setSchedule1] = useState([]);
     const [schedule2, setSchedule2] = useState([]);
 
-    //const leftPanelData = consts.LESSONS.filter(i=>i.day === consts.getDayOfWeek(1) || i.day === consts.getDayOfWeek(2) || i.day === consts.getDayOfWeek(3));
-    //const rightPanelData = consts.LESSONS.filter(i=>i.day === consts.getDayOfWeek(4) || i.day === consts.getDayOfWeek(5));
-
     const fetchSchedule1 = useCallback(async () => {
-      console.log('token', token);
       try {
         const fetched = await request('/api/scheduler/load/1/3', 'GET', null, {
           Authorization: `Bearer ${token}`
@@ -26,7 +22,6 @@ export const SchedulePage = () => {
     }, [token, request]);
   
     const fetchSchedule2 = useCallback(async () => {
-      console.log('token', token);
       try {
         const fetched = await request('/api/scheduler/load/4/5', 'GET', null, {
           Authorization: `Bearer ${token}`
@@ -34,11 +29,13 @@ export const SchedulePage = () => {
         setSchedule2(fetched);
       } catch (e) {}
     }, [token, request]);
-  
 
     useEffect(()=>{
       fetchSchedule1();
       fetchSchedule2();
+    }, []);
+
+    useEffect(()=>{
       window.M.updateTextFields();
     }, []);
 
@@ -47,8 +44,11 @@ export const SchedulePage = () => {
       clearError();
     }, [error, message, clearError]);
 
-    return (
+    if (loading) {
+      return <Loader/>
+    }
 
+    return (
         <div className='root'>
         <Clock />
         <h2 className='caption'>Расписание</h2>
@@ -62,88 +62,88 @@ export const SchedulePage = () => {
 }
 
 function LessonsTable(props){
-    const rows = [];
-    let lastDay = null;
-  
-    props.lessons.forEach((les)=>{
-      if(les.day !== lastDay){
-        rows.push(
-          <LessonDayRow 
-            day={les.day} 
-            key={les.day + les.num}/>
-        );
-      } 
-  
+  const rows = [];
+  let lastDay = null;
+
+  props.lessons.forEach((les)=>{
+    if(les.day !== lastDay){
       rows.push(
-        <LessonRow 
-          lesson={les}
-          key={les.day + les.num + les.lesson}/>
+        <LessonDayRow 
+          day={les.day} 
+          key={les.day + les.num}/>
       );
-  
-      lastDay = les.day;
-    });
-  
-    return (
-      <table >
-        <thead>
-          <tr>
-            <th>№</th>
-            <th>Урок</th>
-          </tr>
-        </thead>
-        <tbody>{rows}</tbody>
-      </table>
+    } 
+
+    rows.push(
+      <LessonRow 
+        lesson={les}
+        key={les.day + les.num + les.lesson}/>
     );
-  }
-  
-  
-  function LessonDayRow(props) {
-    const day = props.day;
-    return(
+
+    lastDay = les.day;
+  });
+
+  return (
+    <table >
+      <thead>
         <tr>
-          <th colSpan="2">
-            <br/>
-            <span className='dayofweek'>{day}</span>
-          </th>
+          <th>№</th>
+          <th>Урок</th>
         </tr>
-    );
+      </thead>
+      <tbody>{rows}</tbody>
+    </table>
+  );
+}
+  
+  
+function LessonDayRow(props) {
+  const day = props.day;
+  return(
+      <tr>
+        <th colSpan="2">
+          <br/>
+          <span className='dayofweek'>{day}</span>
+        </th>
+      </tr>
+  );
+}
+
+
+function LessonRow(props) {
+  const lesson = props.lesson;
+  const num = lesson.num + '. ';
+  const name = lesson.name;
+
+  return (
+      <tr>
+        <td>{num}</td>
+        <td>{name}</td>
+      </tr>
+  );
+}
+
+function Clock() {
+  const [stateDate, setStateDate] = useState({date: new Date()}) ;
+
+  const tick = () => {
+    setStateDate({date: new Date()});
   }
   
-  
-  function LessonRow(props) {
-    const lesson = props.lesson;
-    const num = lesson.num + '. ';
-    const name = lesson.name;
-  
-    return (
-        <tr>
-          <td>{num}</td>
-          <td>{name}</td>
-        </tr>
+  useEffect(()=>{
+    const timerID = setInterval(
+      () => tick(),
+      1000
     );
-  }
+    return () => clearInterval(timerID);
+  });
+
+  const dateTimeCaption = `${consts.getDayOfWeek(stateDate.date.getDay())}, ${stateDate.date.getDate()} ${consts.getMonth(stateDate.date.getMonth())} - ${stateDate.date.toLocaleTimeString()}`;
+  return (
+    <div className='wrapper'>
+      <h2>{`${dateTimeCaption}`}</h2>
+    </div>
+  );
   
-  function Clock() {
-    const [stateDate, setStateDate] = useState({date: new Date()}) ;
 
-    const tick = () => {
-      setStateDate({date: new Date()});
-    }
-   
-    useEffect(()=>{
-      const timerID = setInterval(
-        () => tick(),
-        1000
-      );
-      return () => clearInterval(timerID);
-    });
-
-    const dateTimeCaption = `${consts.getDayOfWeek(stateDate.date.getDay())}, ${stateDate.date.getDate()} ${consts.getMonth(stateDate.date.getMonth())} - ${stateDate.date.toLocaleTimeString()}`;
-    return (
-      <div className='wrapper'>
-        <h2>{`${dateTimeCaption}`}</h2>
-      </div>
-    );
-    
-
-  }
+}
